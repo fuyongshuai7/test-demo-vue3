@@ -1,11 +1,24 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
-import Home from "../views/home/home.vue";
+import Layout from '@/layout/layout.vue'
 
-const routes: Array<RouteRecordRaw> = [
+export const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
     name: "Home",
-    component: Home,
+    redirect: "/home",
+    component: Layout,
+    meta: {
+      title: '首页'      
+    },
+    children: [
+      {
+        path: 'home',
+        component: () => import("@/views/home/home.vue"),
+        meta: {
+          title: '首页'      
+        },
+      }
+    ]
   }
 ];
 
