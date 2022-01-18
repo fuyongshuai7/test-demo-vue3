@@ -31,8 +31,9 @@ function menuClick(index: string, indexPath: string[]) {
     }
     .content {
         flex-grow: 1; 
+        padding: 20px;
     }
-    &::v-deep {
+    &:deep {
         .el-menu {
             height: 100%;
         }
