@@ -1,5 +1,6 @@
 <template>
   <div class="xlsx">
+    <LinkBlock :data="linkData"></LinkBlock>
     <table ref="tableRef">
       <thead>
         <tr>
@@ -26,7 +27,20 @@
 
 <script setup lang="ts">
 import { ref, Ref } from "vue"
+import LinkBlock, { DataType } from '@/components/LinkBlock/index.vue'
 import XLSX from 'xlsx'
+
+// 链接列表
+const linkData: DataType[] = [
+    {
+      href: "https://sheetjs.com/",
+      label: "官网"
+    },
+    {
+      href: "https://github.com/SheetJS/sheetjs",
+      label: "github"
+    }
+]
 
 // 表头
 const tableHeadList: Array<{ prop: string | number, label: string }> = [

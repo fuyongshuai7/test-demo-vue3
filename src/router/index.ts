@@ -36,7 +36,14 @@ export const routes: Array<RouteRecordRaw> = [
         meta: {
           title: 'xlsx导出'
         },
-      }
+      },
+      {
+        path: 'bpmn',
+        component: () => import("@/views/demo/bpmn/index.vue"),
+        meta: {
+          title: 'bpmn'
+        },
+      },
     ]
   }
 ];
