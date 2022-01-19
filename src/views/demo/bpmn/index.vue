@@ -1,11 +1,22 @@
 <template>
     <div class="bpmn">
         <LinkBlock :data="linkData"></LinkBlock>
-        <div>
-            <button type="button" @click="createDiagram">新建图表</button>
+        <div class="tool-wrapper">
+            <div>
+                <button type="button" @click="createDiagram">新建图表</button>
+                <button type="button" @click="improtFile">导入图表</button>
+                <input ref="importFileRef" style="display: none;" type="file" name="xml" id="xml" accept=".bpmn"/>
+            </div>
+            <div>
+                <span>download：</span>
+                <button @click="download('svg')">.svg</button>
+                <button @click="download('bpmn')">.bpmn</button>
+            </div>
         </div>
-        <div ref="jsCanvasRef" class="js-canvas"></div>
-        <div ref="jsPropertiesPanelRef" class="js-properties-panel"></div>
+        <div class="bpmn-wrapper">
+            <div ref="jsCanvasRef" class="js-canvas"></div>
+            <div ref="jsPropertiesPanelRef" class="js-properties-panel"></div>
+        </div>
     </div>
 </template>
 
@@ -40,12 +51,14 @@ const linkData: DataType[] = [
     }
 ]
 
+const importFileRef: Ref<HTMLInputElement | undefined> = ref<HTMLInputElement>()
 const jsCanvasRef: Ref<HTMLDivElement | undefined> = ref<HTMLDivElement>()
 const jsPropertiesPanelRef: Ref<HTMLDivElement | undefined> = ref<HTMLDivElement>()
 
 let bpmnModeler: any = null
 onMounted(() => {
     initBpmnModeler()
+    importFileRef.value?.addEventListener("change", fileChange)
 })
 
 function initBpmnModeler() {
@@ -61,8 +74,28 @@ function initBpmnModeler() {
     })
 }
 
-async function createDiagram() {
+function createDiagram() {
     openDiagram(diagramXML)
+}
+
+function improtFile() {
+    importFileRef.value?.click()
+}
+
+function fileChange() {
+    const files: FileList | null | undefined = importFileRef.value?.files
+    const fileReader: FileReader = new FileReader()
+    fileReader.onload = (e) => {
+        const xml = e.target?.result
+        openDiagram(xml)
+    }
+    if (files) {
+        fileReader.readAsText(files[0])
+    }
+    if (importFileRef.value) {
+        // 解决无法上传相同文件
+        importFileRef.value.value = ""
+    }
 }
 
 async function openDiagram(xml: any) {
@@ -73,14 +106,58 @@ async function openDiagram(xml: any) {
     }
 }
 
+async function download(type: string) {
+    let data = null
+    switch (type) {
+        case "svg": {
+            const { svg } = await bpmnModeler.saveSVG();
+            data = svg
+            break;
+        }
+        case "bpmn": {
+            const { xml } = await bpmnModeler.saveXML({ format: true });
+            data = xml
+            break;
+        }
+    }
+    if (data) {
+        const a = document.createElement('a');
+        a.href = 'data:application/bpmn20-xml;charset=UTF-8,' + encodeURIComponent(data);
+        a.download = 'diagram.' + type
+        a.click()
+    }
+}
+
 </script>
 <style lang="scss" scoped>
 .bpmn {
     height: 100%;
-    .js-canvas {
-        height: 500px;
+    .tool-wrapper {
+        display: flex;
+        justify-content: space-between;
     }
-    .js-properties-panel {
+    .bpmn-wrapper {
+        height: 500px;
+        width: 100%;
+        border: 1px solid;
+        position: relative;
+        .js-canvas {
+            height: 100%;
+            width: 100%;
+        }
+        .js-properties-panel {
+            position: absolute;
+            right: 20px;
+            top: 0;
+        }
+    }
+}
+:deep {
+    .bpp-properties-panel [type="text"],
+    .bpp-properties-panel [contenteditable],
+    .bpp-properties-panel textarea,
+    .bpp-properties-panel select {
+        width: auto;
     }
 }
 </style>
