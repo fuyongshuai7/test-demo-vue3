@@ -2,7 +2,7 @@
   <div class="link-block">
       <template v-for="(item, index) in props.data" :key="index">
           <br v-if="index !== 0">
-          <a :href="item.href">{{ item.label }}</a>
+          <a :href="item.href" target="_blank">{{ item.label }}</a>
       </template>
   </div>
 </template>

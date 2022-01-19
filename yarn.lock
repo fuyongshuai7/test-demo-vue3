@@ -3790,10 +3790,10 @@ electron-to-chromium@^1.4.17:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.30.tgz#0f75a1dce26dffbd5a0f7212e5b87fe0b61cbc76"
   integrity sha512-609z9sIMxDHg+TcR/VB3MXwH+uwtrYyeAwWc/orhnr90ixs6WVGSrt85CDLGUdNnLqCA7liv426V20EecjvflQ==
 
-element-plus@^1.3.0-beta.1:
-  version "1.3.0-beta.1"
-  resolved "https://registry.yarnpkg.com/element-plus/-/element-plus-1.3.0-beta.1.tgz#4df67fcedb0c13d14c9f54eea7b739109f5df49f"
-  integrity sha512-q3vMaKElPpuSTeIF7kuDmMOE+N1YVCCIG3fshXpz6qgjnxPbgZumVM0qGfhr8DTu9JxRbBoDok49dqtX/BWn3w==
+element-plus@^1.3.0-beta.5:
+  version "1.3.0-beta.5"
+  resolved "https://registry.yarnpkg.com/element-plus/-/element-plus-1.3.0-beta.5.tgz#cb753d03da1df81c67bf59fa0b83fa127a853622"
+  integrity sha512-su0sHN4ZkR5ISyP1McyiqY5wqrgZgKq0El0lSohjvjEWR3ODlgdmMfQolV0ZqTXKlO2mS16hO7nTFwX9PvZNTQ==
   dependencies:
     "@ctrl/tinycolor" "^3.4.0"
     "@element-plus/icons-vue" "^0.2.4"

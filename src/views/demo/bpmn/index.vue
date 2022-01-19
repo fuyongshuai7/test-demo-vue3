@@ -3,8 +3,8 @@
         <LinkBlock :data="linkData"></LinkBlock>
         <div class="tool-wrapper">
             <div>
-                <button type="button" @click="createDiagram">新建图表</button>
-                <button type="button" @click="improtFile">导入图表</button>
+                <button @click="createDiagram">新建图表</button>
+                <button @click="improtFile">导入图表</button>
                 <input ref="importFileRef" style="display: none;" type="file" name="xml" id="xml" accept=".bpmn"/>
             </div>
             <div>

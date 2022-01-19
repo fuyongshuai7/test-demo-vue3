@@ -10,5 +10,5 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 createApp(App)
     .use(store)
     .use(router)
-    .use(ElementPlus, { locale: zhCn })
+    .use(ElementPlus, { locale: zhCn, size: "small" })
     .mount("#app");

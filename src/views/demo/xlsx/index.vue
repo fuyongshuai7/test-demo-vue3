@@ -15,12 +15,12 @@
     </table>
     <p class="table_to_sheet">
       <span class="title-text">table_to_sheet</span>
-      <el-button type="primary" size="small" @click="handleExport('table_to_sheet')">导出</el-button>
+      <el-button type="primary" @click="handleExport('table_to_sheet')">导出</el-button>
     </p>
 
     <p class="aoa_to_sheet">
       <span class="title-text">aoa_to_sheet</span>
-      <el-button type="primary" size="small" @click="handleExport('aoa_to_sheet')">导出</el-button>
+      <el-button type="primary" @click="handleExport('aoa_to_sheet')">导出</el-button>
     </p>
   </div>
 </template>
