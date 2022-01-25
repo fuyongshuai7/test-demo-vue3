@@ -93,7 +93,7 @@ function fileChange() {
         fileReader.readAsText(files[0])
     }
     if (importFileRef.value) {
-        // 解决无法上传相同文件
+        // 相同文件无法触发change事件
         importFileRef.value.value = ""
     }
 }

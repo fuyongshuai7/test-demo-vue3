@@ -44,6 +44,13 @@ export const routes: Array<RouteRecordRaw> = [
           title: 'bpmn'
         },
       },
+      {
+        path: 'greedy-snake',
+        component: () => import("@/views/demo/greedySnake/index.vue"),
+        meta: {
+          title: "greedy-snake"
+        }
+      }
     ]
   }
 ];
