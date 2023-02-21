@@ -12,3 +12,4 @@ createApp(App)
     .use(router)
     .use(ElementPlus, { locale: zhCn, size: "small" })
     .mount("#app");
+
