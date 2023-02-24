@@ -5,14 +5,16 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "postinstall": "patch-package"
   },
   "dependencies": {
-    "@bpmn-io/properties-panel": "^0.10.1",
-    "bpmn-js": "^8.9.0",
-    "bpmn-js-properties-panel": "^0.46.0",
+    "@bpmn-io/properties-panel": "^1.4.0",
+    "bpmn-js": "^11.4.1",
+    "bpmn-js-properties-panel": "^1.17.2",
     "core-js": "^3.6.5",
     "element-plus": "^2.2.32",
+    "patch-package": "^6.5.1",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",
     "vuex": "^4.0.0-0",

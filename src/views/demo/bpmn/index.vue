@@ -5,7 +5,7 @@
             <div>
                 <button @click="createDiagram">新建图表</button>
                 <button @click="improtFile">导入图表</button>
-                <input ref="importFileRef" style="display: none;" type="file" name="xml" id="xml" accept=".bpmn"/>
+                <input ref="importFileRef" style="display: none;" type="file" name="xml" id="xml" accept=".bpmn" />
             </div>
             <div>
                 <span>download：</span>
@@ -23,21 +23,17 @@
 <script setup lang="ts">
 import { Ref, ref, onMounted } from 'vue';
 import LinkBlock, { DataType } from '@/components/LinkBlock/index.vue'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+// @ts-expect-error js文件没有申明文件
 import BpmnModeler from 'bpmn-js/lib/Modeler';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import BpmnPropertiesPanelModule from 'bpmn-js-properties-panel'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import BpmnPropertiesProviderModule from 'bpmn-js-properties-panel/lib/provider/bpmn'
+// @ts-expect-error js文件没有申明文件
+import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule } from 'bpmn-js-properties-panel';
 import 'bpmn-js/dist/assets/diagram-js.css'
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css'
-import 'bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+import 'bpmn-js-properties-panel/dist/assets/properties-panel.css'
+// @ts-expect-error js文件没有申明文件
 import diagramXML from './resources/newDiagram.js'
+// @ts-expect-error js文件没有申明文件
+import Custom1PanelModule from './components/custom1/index.js'
 
 // 链接列表
 const linkData: DataType[] = [
@@ -69,7 +65,8 @@ function initBpmnModeler() {
         },
         additionalModules: [
             BpmnPropertiesPanelModule,
-            BpmnPropertiesProviderModule
+            BpmnPropertiesProviderModule,
+            Custom1PanelModule
         ]
     })
 }
@@ -132,19 +129,23 @@ async function download(type: string) {
 <style lang="scss" scoped>
 .bpmn {
     height: 100%;
+
     .tool-wrapper {
         display: flex;
         justify-content: space-between;
     }
+
     .bpmn-wrapper {
         height: 500px;
         width: 100%;
         border: 1px solid;
         position: relative;
+
         .js-canvas {
             height: 100%;
             width: 100%;
         }
+
         .js-properties-panel {
             position: absolute;
             right: 20px;
@@ -152,12 +153,13 @@ async function download(type: string) {
         }
     }
 }
+
 :deep {
+
     .bpp-properties-panel [type="text"],
     .bpp-properties-panel [contenteditable],
     .bpp-properties-panel textarea,
     .bpp-properties-panel select {
         width: auto;
     }
-}
-</style>
+}</style>

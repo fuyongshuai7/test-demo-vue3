@@ -1,0 +1,90 @@
+diff --git a/node_modules/lezer-feel/dist/index.es.js b/node_modules/lezer-feel/dist/index.es.js
+index cb4f0e8..eed51e4 100644
+--- a/node_modules/lezer-feel/dist/index.es.js
++++ b/node_modules/lezer-feel/dist/index.es.js
+@@ -506,7 +506,8 @@ class Variables {
+   }
+ 
+   get path() {
+-    return this.parent?.path?.concat(' > ', this.name) || this.name;
++    return this.parent && this.parent.path && this.parent.path.concat(' > ', this.name) || this.name
++    // return this.parent?.path?.concat(' > ', this.name) || this.name;
+   }
+ 
+   /**
+@@ -706,7 +707,8 @@ function wrap(variables, scopeName, code) {
+   const valuePart = parts[Math.max(1, parts.length - 1)];
+ 
+   const name = namePart.computedValue();
+-  const value = valuePart?.computedValue() || null;
++  // const value = valuePart?.computedValue() || null;
++  const value = valuePart && valuePart.computedValue && valuePart.computedValue || null;
+ 
+   return variables
+     .assign({
+@@ -744,8 +746,10 @@ function trackVariables(context = {}) {
+ 
+         variables = variables.assign({
+           value: {
+-            ...thenPart?.computedValue(),
+-            ...elsePart?.computedValue()
++            // ...thenPart?.computedValue(),
++            // ...elsePart?.computedValue()
++            ...(thenPart && thenPart.computedValue && thenPart.computedValue() || {}),
++            ...(elsePart && elsePart.computedValue && elsePart.computedValue() || {})
+           }
+         });
+       }
+@@ -754,7 +758,8 @@ function trackVariables(context = {}) {
+         const [ sourcePart, _ ] = variables.children.slice(-2);
+ 
+         variables = variables.assign({
+-          value: sourcePart?.computedValue()
++          // value: sourcePart?.computedValue()
++          value: sourcePart && sourcePart.computedValue && sourcePart.computedValue() || null
+         });
+       }
+ 
+@@ -766,7 +771,8 @@ function trackVariables(context = {}) {
+         ] = variables.children;
+ 
+         // preserve type information through `get value(context, key)` utility
+-        if (name?.raw === 'get value') {
++        // if (name?.raw === 'get value') {
++        if (name && name.raw && name.raw === 'get value') {
+           variables = getContextValue(variables, args);
+         }
+       }
+@@ -790,7 +796,8 @@ function trackVariables(context = {}) {
+         }).enterScope(prefixedStart).pushChild(lastChild).assign({
+           context: {
+             ...variables.context,
+-            ...lastChild?.computedValue()
++            // ...lastChild?.computedValue()
++            ...(lastChild && lastChild.computedValue && lastChild.computedValue() || {})
+           }
+         });
+       }
+@@ -820,7 +827,8 @@ function trackVariables(context = {}) {
+         return variables.define(
+           'partial',
+           ValueProducer.of(variables => {
+-            return variables.children[variables.children.length - 1]?.computedValue();
++            return variables.children[variables.children.length - 1] && variables.children[variables.children.length - 1].computedValue && variables.children[variables.children.length - 1].computedValue();
++            // return variables.children[variables.children.length - 1]?.computedValue();
+           })
+         );
+       }
+@@ -946,8 +954,10 @@ function getContextValue(variables, args) {
+     key
+   ] = args;
+ 
+-  const keyValue = key?.computedValue();
+-  const contextValue = context?.computedValue();
++  // const keyValue = key?.computedValue();
++  // const contextValue = context?.computedValue();
++  const keyValue = key && key.computedValue && key.computedValue();
++  const contextValue = context && context.computedValue && context.computedValue();
+ 
+   if (
+     (!contextValue || typeof contextValue !== 'object') || typeof keyValue !== 'string'
