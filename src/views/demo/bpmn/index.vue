@@ -32,8 +32,13 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css'
 import 'bpmn-js-properties-panel/dist/assets/properties-panel.css'
 // @ts-expect-error js文件没有申明文件
 import diagramXML from './resources/newDiagram.js'
+
+
 // @ts-expect-error js文件没有申明文件
-import Custom1PanelModule from './components/custom1/index.js'
+import magicPropertiesProviderModule from './components/provider/magic/index.js';
+// @ts-expect-error js文件没有申明文件
+import magicModdleDescriptor from './components/descriptors/magic.json';
+
 
 // 链接列表
 const linkData: DataType[] = [
@@ -44,6 +49,10 @@ const linkData: DataType[] = [
     {
         href: "https://github.com/bpmn-io/bpmn-js-examples/tree/master/properties-panel",
         label: "bpmn-js Modeler + Properties Panel Example (github)"
+    },
+    {
+        href: "https://github.com/bpmn-io/bpmn-js-examples/tree/master/properties-panel-extension",
+        label: "自定义属性面板（github）"
     }
 ]
 
@@ -66,8 +75,11 @@ function initBpmnModeler() {
         additionalModules: [
             BpmnPropertiesPanelModule,
             BpmnPropertiesProviderModule,
-            Custom1PanelModule
-        ]
+            magicPropertiesProviderModule
+        ],
+        moddleExtensions: {
+            magic: magicModdleDescriptor
+        }
     })
 }
 
@@ -162,4 +174,5 @@ async function download(type: string) {
     .bpp-properties-panel select {
         width: auto;
     }
-}</style>
+}
+</style>

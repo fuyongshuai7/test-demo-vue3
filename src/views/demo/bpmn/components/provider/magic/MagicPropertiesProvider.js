@@ -1,7 +1,7 @@
 // Import your custom property entries.
 // The entry is a text input field with logic attached to create,
 // update and delete the "spell" property.
-import custom1Props from './custom1Props';
+import spellProps from './parts/SpellProps';
 
 import { is } from 'bpmn-js/lib/util/ModelUtil';
 
@@ -15,7 +15,7 @@ const LOW_PRIORITY = 500;
  * @param {PropertiesPanel} propertiesPanel
  * @param {Function} translate
  */
-export default function Custom1Provider(propertiesPanel, translate) {
+export default function MagicPropertiesProvider(propertiesPanel, translate) {
 
   // API ////////
 
@@ -26,7 +26,7 @@ export default function Custom1Provider(propertiesPanel, translate) {
    *
    * @return {(Object[]) => (Object[])} groups middleware
    */
-  this.getGroups = function (element) {
+  this.getGroups = function(element) {
 
     /**
      * We return a middleware that modifies
@@ -36,11 +36,11 @@ export default function Custom1Provider(propertiesPanel, translate) {
      *
      * @return {Object[]} modified groups
      */
-    return function (groups) {
+    return function(groups) {
 
       // Add the "magic" group
-      if (is(element, 'bpmn:StartEvent')) {
-        groups.push(createGroup(element, translate));
+      if(is(element, 'bpmn:StartEvent')) {
+        groups.push(createMagicGroup(element, translate));
       }
 
       return groups;
@@ -56,17 +56,17 @@ export default function Custom1Provider(propertiesPanel, translate) {
   propertiesPanel.registerProvider(LOW_PRIORITY, this);
 }
 
-Custom1Provider.$inject = ['propertiesPanel', 'translate'];
+MagicPropertiesProvider.$inject = [ 'propertiesPanel', 'translate' ];
 
 // Create the custom magic group
-function createGroup(element, translate) {
+function createMagicGroup(element, translate) {
 
   // create a group called "Magic properties".
-  const customGroup = {
-    id: 'cutom1',
-    label: translate('custom1'),
-    entries: custom1Props(element)
+  const magicGroup = {
+    id: 'magic',
+    label: translate('Magic properties'),
+    entries: spellProps(element)
   };
 
-  return customGroup
+  return magicGroup
 }
