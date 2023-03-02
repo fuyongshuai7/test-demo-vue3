@@ -15,9 +15,9 @@
     "core-js": "^3.6.5",
     "element-plus": "^2.2.32",
     "patch-package": "^6.5.1",
-    "vue": "^3.0.0",
-    "vue-router": "^4.0.0-0",
-    "vuex": "^4.0.0-0",
+    "vue": "^3.2.47",
+    "vue-router": "^4.1.6",
+    "vuex": "^4.1.0",
     "xlsx": "^0.17.4"
   },
   "devDependencies": {

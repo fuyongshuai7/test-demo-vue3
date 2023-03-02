@@ -31,6 +31,7 @@ function Spell(props) {
     });
   }
 
+  // 官方这边返回的是一个jsx的格式，改成js写法
   return TextFieldEntry({
     id: id,
     description: translate('Apply a black magic spell'),

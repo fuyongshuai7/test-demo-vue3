@@ -39,6 +39,7 @@ export default function MagicPropertiesProvider(propertiesPanel, translate) {
     return function(groups) {
 
       // Add the "magic" group
+      // 判断是bpmn:StartEvent节点，是的话就将这个群组塞进去，不判断则会在所有节点上添加
       if(is(element, 'bpmn:StartEvent')) {
         groups.push(createMagicGroup(element, translate));
       }
