@@ -1,12 +1,12 @@
+import { turnBase64ImgToFile } from "@/utils"
 import { PlayerOptions } from "./types"
-import { turnBase64ImgToFile } from "./utils"
 
 export class Player {
     constructor(videoElement: HTMLVideoElement, options: PlayerOptions) {
         this.videoElement = videoElement
         this.options = options
 
-
+        this.init()
     }
 
     private init() {
@@ -20,13 +20,14 @@ export class Player {
 
         this.bindEvent()
     }
+    // 这边只绑定内部需要用到的事件，目前的想法是用户如果想加事件的话，自己在video标签上绑定
     private bindEvent() {
         this.videoElement.addEventListener('canplay', this.videoCanPlayHandler)
         this.videoElement.addEventListener('canplaythrough', this.videoCanPlayThroughHandler)
         this.videoElement.addEventListener('complete', this.videoCompleteHandler)
         this.videoElement.addEventListener('durationchange', this.videoDurationChangeHandler)
-        // this.videoElement.addEventListener('canplay', this.videoCanPlayHandler)
-        // this.videoElement.addEventListener('canplay', this.videoCanPlayHandler)
+        this.videoElement.addEventListener('timeupdate', this.videoTimeUpdateHandler)
+        this.videoElement.addEventListener('loadedmetadata', this.videoLoadedMetaDataHandler)
     }
     private videoCanPlayHandler = (e: Event) => {
         console.log('e: canplay', e)
@@ -40,12 +41,18 @@ export class Player {
     private videoDurationChangeHandler = (e: Event) => {
         console.log('e: durationchange', e)
     }
-
+    private videoTimeUpdateHandler = (e: Event) => {
+        console.log('e: timeupdate', e)
+    }
+    private videoLoadedMetaDataHandler = (e: Event) => {
+        console.log('e: loadedmetadata', e)
+        this.duration = this.videoElement.duration
+    }
 
     private videoElement: HTMLVideoElement // 视频组件dom
     private options: PlayerOptions // 配置项
-
     private lastVolume: number = 0.5 // 最后设置的声音
+    private duration: number = 0 // 视频时长，单位秒
 
     // 播放
     public play() {

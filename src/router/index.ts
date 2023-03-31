@@ -8,14 +8,14 @@ export const routes: Array<RouteRecordRaw> = [
     redirect: "/home",
     component: Layout,
     meta: {
-      title: '首页'      
+      title: '首页'
     },
     children: [
       {
         path: 'home',
         component: () => import("@/views/home/home.vue"),
         meta: {
-          title: '首页', 
+          title: '首页',
           hidden: true
         },
       }
@@ -27,7 +27,7 @@ export const routes: Array<RouteRecordRaw> = [
     redirect: "/demo/xlsx",
     component: Layout,
     meta: {
-      title: 'demo'      
+      title: 'demo'
     },
     children: [
       {
@@ -49,6 +49,13 @@ export const routes: Array<RouteRecordRaw> = [
         component: () => import("@/views/demo/greedySnake/index.vue"),
         meta: {
           title: "greedy-snake"
+        }
+      },
+      {
+        path: 'video-player',
+        component: () => import("@/views/demo/videoPlayer/index.vue"),
+        meta: {
+          title: "video-player"
         }
       }
     ]
