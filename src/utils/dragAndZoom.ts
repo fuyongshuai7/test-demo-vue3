@@ -6,27 +6,27 @@ interface DragAndZoomOptions {
         max?: number,
         min?: number
     }
-    beforeMoving?: () => boolean // 移动前回调，返回true才能拖动
+    beforeMoving?: () => boolean, // 移动前回调，返回true才能拖动
 }
 export default class DragAndZoom {
-    constructor(e: HTMLElement, options?: DragAndZoomOptions) {
+    constructor(e: HTMLElement, options?: DragAndZoomOptions, parentElement?: HTMLElement) {
         if (!e) {
             console.error('dom 不存在')
         } else {
             this.dom = e
-            this.options = options || { zoom: { max: 10, min: 0.5 }, beforeMoving: () => true }
+            this.options = options || { zoom: this.defaultZoom, beforeMoving: () => true }
+            this.parentElement = parentElement || this.dom.parentElement
             this._init()
         }
     }
 
     private dom: HTMLElement | null = null
-    private options: DragAndZoomOptions = {}
-    private afInstance: any
-    private initScale = {
-        width: 0,
-        height: 0
-    }
     private cacheTranslateAfterPinch = { x: 0, y: 0 }
+    private defaultZoom = { max: 10, min: 0.5 }
+    private initScale = { width: 0, height: 0 }
+    private options: DragAndZoomOptions = { zoom: this.defaultZoom, beforeMoving: () => true }
+    private parentElement: HTMLElement | null = null
+    private afInstance: any
 
     private _init = () => {
         // 绑定事件
@@ -63,6 +63,8 @@ export default class DragAndZoom {
                     this.lastTranslate.x = this.cacheTranslateAfterPinch.x
                     this.lastTranslate.y = this.cacheTranslateAfterPinch.y
                 }
+
+                this.setDomDragBoundary()
             },
             pinch: (e: any) => {
                 this.setZoomingTimeout()
@@ -74,8 +76,31 @@ export default class DragAndZoom {
                 const width = this.initScale.width
                 const height = this.initScale.height
 
-                const zoomWidth = width * size
-                const zoomHeight = height * size
+                let zoomWidth = width * size
+                let zoomHeight = height * size
+
+                // 最大最小宽高逻辑 ===
+                const _minSize = this.options.zoom!.min as number
+                const _maxSize = this.options.zoom!.max as number
+                const _minWidth = this.originSize.width * _minSize
+                const _minHeight = this.originSize.height * _minSize
+                const _maxWidth = this.originSize.width * _maxSize
+                const _maxHeight = this.originSize.height * _maxSize
+
+                if (zoomWidth < _minWidth) {
+                    zoomWidth = _minWidth
+                }
+                if (zoomHeight < _minHeight) {
+                    zoomHeight = _minHeight
+                }
+
+                if (zoomWidth > _maxWidth) {
+                    zoomWidth = _maxWidth
+                }
+                if (zoomHeight > _maxHeight) {
+                    zoomHeight = _maxHeight
+                }
+                // 最大最小宽高逻辑 。。。
 
                 this.dom!.style.width = `${zoomWidth}px`
                 this.dom!.style.height = `${zoomHeight}px`
@@ -135,9 +160,7 @@ export default class DragAndZoom {
     private lastTranslate = { x: 0, y: 0 } // 鼠标弹起后的元素偏移
     private videoMouseUpHandler = () => {
         this.isMouseDown = false
-
-        this.lastTranslate.x = this.movingTranslate.x
-        this.lastTranslate.y = this.movingTranslate.y
+        this.setDomDragBoundary()
     }
     private videoMouseMoveHandler = (e: MouseEvent) => {
         if (!this.isMouseDown || !this.options?.beforeMoving?.() || this.isZooming) return
@@ -154,24 +177,70 @@ export default class DragAndZoom {
 
         this.movingTranslate.x = movingX + this.lastTranslate.x
         this.movingTranslate.y = movingY + this.lastTranslate.y;
-
         this.dom!.style.transform = `translate(${this.movingTranslate.x}px, ${this.movingTranslate.y}px)`
-
-        // TODO: 拖拽边界
 
         // 拖拽实现 。。。。。。。。。。。。。。。
     }
+
     private videoMouseDownHandler = (e: MouseEvent) => {
         this.isMouseDown = true
         this.downPointer.x = e.clientX
         this.downPointer.y = e.clientY
     }
 
+    // TODO: 边界范围
+    private setDomDragBoundary = () => {
+        const { top: domTop, right: domRight, bottom: domBottom, left: domLeft, width: domWidth } = this.dom!.getClientRects()[0]
+        const { top: parentTop, right: parentRight, bottom: parentBottom, left: parentLeft, width: parentWidth } = this.parentElement!.getClientRects()[0]
+
+        if (domWidth > parentWidth) {
+            // 子元素大于父元素时的逻辑
+            if (domRight <= parentRight) {
+                // 右边界
+                this.movingTranslate.x = this.parentElement!.clientWidth - this.dom!.clientWidth
+            }
+            if (domLeft >= parentLeft) {
+                // 左边界
+                this.movingTranslate.x = 0
+            }
+            if (domTop >= parentTop) {
+                // 上边界
+                this.movingTranslate.y = 0
+            }
+            if (domBottom <= parentBottom) {
+                // 下边界
+                this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight
+            }
+        } else {
+            // 子元素小于父元素时的逻辑
+            if (domRight >= parentRight) {
+                // 右边界
+                this.movingTranslate.x = this.parentElement!.clientWidth - this.dom!.clientWidth
+            }
+            if (domLeft <= parentLeft) {
+                // 左边界
+                this.movingTranslate.x = 0
+            }
+            if (domTop <= parentTop) {
+                // 上边界
+                this.movingTranslate.y = 0
+            }
+            if (domBottom >= parentBottom) {
+                // 下边界
+                this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight
+            }
+        }
+
+        this.dom!.style.transform = `translate(${this.movingTranslate.x}px, ${this.movingTranslate.y}px)`
+
+        this.lastTranslate.x = this.movingTranslate.x
+        this.lastTranslate.y = this.movingTranslate.y
+    }
 
     private originSize = { width: 0, height: 0 } // dom原始值
     private lastSize = { width: 0, height: 0 } // dom最后的尺寸,用来计算放大缩小后元素居中
     public zoom = (size: number) => {
-        if (size > (this.options?.zoom?.max || 10) || size < (this.options?.zoom?.min || 0.5)) return
+        if (size > (this.options?.zoom?.max || this.defaultZoom.max) || size < (this.options?.zoom?.min || this.defaultZoom.min)) return
 
         this.setZoomingTimeout()
 
@@ -187,7 +256,8 @@ export default class DragAndZoom {
         this.lastTranslate.x -= distanceX
         this.lastTranslate.y -= distanceY
 
-        this.dom!.style.transform = `translate(${this.lastTranslate.x}px, ${this.lastTranslate.y}px)`
+        this.setDomDragBoundary()
+        // this.dom!.style.transform = `translate(${this.lastTranslate.x}px, ${this.lastTranslate.y}px)`
     }
 
     // 移除事件绑定
