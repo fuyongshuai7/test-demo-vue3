@@ -57,6 +57,13 @@ export const routes: Array<RouteRecordRaw> = [
         meta: {
           title: "video-player"
         }
+      },
+      {
+        path: 'drag-and-zoom',
+        component: () => import("@/views/demo/dragAndZoom/index.vue"),
+        meta: {
+          title: "drag-and-zoom"
+        }
       }
     ]
   }

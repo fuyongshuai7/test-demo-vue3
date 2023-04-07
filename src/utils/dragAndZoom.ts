@@ -37,7 +37,6 @@ export default class DragAndZoom {
         this.originSize.width = this.dom!.clientWidth
         this.lastSize.height = this.dom!.clientHeight
         this.lastSize.width = this.dom!.clientWidth
-
         // ==============
         // 触摸事件
         this.afInstance = new AlloyFinger(this.dom, {
@@ -63,7 +62,6 @@ export default class DragAndZoom {
                     this.lastTranslate.x = this.cacheTranslateAfterPinch.x
                     this.lastTranslate.y = this.cacheTranslateAfterPinch.y
                 }
-
                 this.setDomDragBoundary()
             },
             pinch: (e: any) => {
@@ -165,6 +163,7 @@ export default class DragAndZoom {
     private videoMouseMoveHandler = (e: MouseEvent) => {
         if (!this.isMouseDown || !this.options?.beforeMoving?.() || this.isZooming) return
 
+        e.preventDefault()
         // 拖拽实现 ====================
         // 踩个坑，e.offsetX 数值没有那么准确，会发生抖动现象，改用clientX
         const movePointer = {
@@ -189,12 +188,13 @@ export default class DragAndZoom {
     }
 
     // TODO: 边界范围
+    // TODO: 只有整个元素都在父元素之外的时候才要重新定位边界
     private setDomDragBoundary = () => {
-        const { top: domTop, right: domRight, bottom: domBottom, left: domLeft, width: domWidth } = this.dom!.getClientRects()[0]
-        const { top: parentTop, right: parentRight, bottom: parentBottom, left: parentLeft, width: parentWidth } = this.parentElement!.getClientRects()[0]
+        const { top: domTop, right: domRight, bottom: domBottom, left: domLeft, width: domWidth, height: domHeight } = this.dom!.getClientRects()[0]
+        const { top: parentTop, right: parentRight, bottom: parentBottom, left: parentLeft, width: parentWidth, height: parentHeight } = this.parentElement!.getClientRects()[0]
 
         if (domWidth > parentWidth) {
-            // 子元素大于父元素时的逻辑
+            // 子元素宽度大于父元素时的逻辑
             if (domRight <= parentRight) {
                 // 右边界
                 this.movingTranslate.x = this.parentElement!.clientWidth - this.dom!.clientWidth
@@ -203,16 +203,9 @@ export default class DragAndZoom {
                 // 左边界
                 this.movingTranslate.x = 0
             }
-            if (domTop >= parentTop) {
-                // 上边界
-                this.movingTranslate.y = 0
-            }
-            if (domBottom <= parentBottom) {
-                // 下边界
-                this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight
-            }
-        } else {
-            // 子元素小于父元素时的逻辑
+        }
+        if (domWidth <= parentWidth) {
+            // 子元素宽度小于父元素时的逻辑
             if (domRight >= parentRight) {
                 // 右边界
                 this.movingTranslate.x = this.parentElement!.clientWidth - this.dom!.clientWidth
@@ -221,13 +214,27 @@ export default class DragAndZoom {
                 // 左边界
                 this.movingTranslate.x = 0
             }
-            if (domTop <= parentTop) {
+        }
+        if (domHeight > parentHeight) {
+            // 子元素高度大于父元素时的逻辑
+            if (domBottom <= parentBottom) {
+                // 下边界
+                this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight
+            }
+            if (domTop >= parentTop) {
                 // 上边界
                 this.movingTranslate.y = 0
             }
+        }
+        if (domHeight <= parentHeight) {
+            // 子元素高度小于父元素时的逻辑
             if (domBottom >= parentBottom) {
                 // 下边界
                 this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight
+            }
+            if (domTop <= parentTop) {
+                // 上边界
+                this.movingTranslate.y = 0
             }
         }
 
