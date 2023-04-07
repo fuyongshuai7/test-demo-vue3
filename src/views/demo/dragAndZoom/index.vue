@@ -50,8 +50,8 @@ const remove = () => {
 <style lang="scss" scoped>
 .drag-and-zoom {
     border: 1px solid red;
-    width: 200px;
-    height: 500px;
+    width: 1100px;
+    height: 700px;
     overflow: hidden;
     position: relative;
 
