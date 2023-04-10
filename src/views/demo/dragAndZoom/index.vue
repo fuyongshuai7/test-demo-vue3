@@ -1,5 +1,5 @@
 <template>
-    <div class="drag-and-zoom">
+    <div class="drag-and-zoom" ref="componentRef">
         <img ref="dragRef" src="https://fuss10.elemecdn.com/3/28/bbf893f792f03a54408b3b7a7ebf0jpeg.jpeg"
             alt="just-very-cute">
 
@@ -9,6 +9,7 @@
             <button @click="remove">dispose</button>
             <button>rebind</button>
             <button>reset</button>
+            <button @click="fullScreen">full screen</button>
         </div>
     </div>
 </template>
@@ -33,10 +34,16 @@ const zoom = (type: 'up' | 'down', step: number) => {
     switch (type) {
         case 'up': {
             currentZoomSize += step
+            if (currentZoomSize >= 10) {
+                currentZoomSize = 10
+            }
             break
         }
         case 'down': {
             currentZoomSize -= step
+            if (currentZoomSize <= 0.5) {
+                currentZoomSize = 0.5
+            }
             break
         }
     }
@@ -45,6 +52,12 @@ const zoom = (type: 'up' | 'down', step: number) => {
 
 const remove = () => {
     instance.dispose()
+}
+
+
+const componentRef = ref<HTMLElement>()
+const fullScreen = () => {
+    componentRef.value?.requestFullscreen()
 }
 </script>
 <style lang="scss" scoped>
@@ -57,6 +70,8 @@ const remove = () => {
 
     img {
         border: 1px solid green;
+        // width: 100%;
+        // height: 100%;
     }
 
     .operation-group {

@@ -48,7 +48,7 @@ export default class DragAndZoom {
                 this.movingTranslate.x = deltaX + this.lastTranslate.x
                 this.movingTranslate.y = deltaY + this.lastTranslate.y;
 
-                this.dom!.style.transform = `translate(${this.movingTranslate.x}px, ${this.movingTranslate.y}px)`
+                this.setTransform(this.movingTranslate.x, this.movingTranslate.y)
 
                 this.lastTranslate.x = this.movingTranslate.x
                 this.lastTranslate.y = this.movingTranslate.y
@@ -109,7 +109,8 @@ export default class DragAndZoom {
                 const translateX = this.lastTranslate.x - distanceX
                 const translateY = this.lastTranslate.y - distanceY
 
-                this.dom!.style.transform = `translate(${translateX}px, ${translateY}px)`
+                // this.dom!.style.transform = `translate(${translateX}px, ${translateY}px)`
+                this.setTransform(translateX, translateY)
 
                 // 保存偏移，等缩放结束后设置lastTranslate
                 this.cacheTranslateAfterPinch.x = translateX
@@ -128,6 +129,8 @@ export default class DragAndZoom {
 
         // 绑定一个document鼠标弹起监听, 当离开鼠标离开元素弹起的时候能够取消拖拽
         document.addEventListener('mouseup', this.videoMouseUpHandler)
+        // 全屏恢复时需要重新调整位置
+        document.addEventListener('fullscreenchange', this.fullscreenChangeHandler)
     }
     // 移除鼠标事件
     private unbindVideoMouseEventHandler = () => {
@@ -136,6 +139,7 @@ export default class DragAndZoom {
         this.dom!.removeEventListener('mousedown', this.videoMouseDownHandler)
 
         document.removeEventListener('mouseup', this.videoMouseUpHandler)
+        document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler)
     }
 
     private zoomingTimeout: null | number = null
@@ -164,6 +168,7 @@ export default class DragAndZoom {
         if (!this.isMouseDown || !this.options?.beforeMoving?.() || this.isZooming) return
 
         e.preventDefault()
+        e.stopPropagation()
         // 拖拽实现 ====================
         // 踩个坑，e.offsetX 数值没有那么准确，会发生抖动现象，改用clientX
         const movePointer = {
@@ -176,7 +181,7 @@ export default class DragAndZoom {
 
         this.movingTranslate.x = movingX + this.lastTranslate.x
         this.movingTranslate.y = movingY + this.lastTranslate.y;
-        this.dom!.style.transform = `translate(${this.movingTranslate.x}px, ${this.movingTranslate.y}px)`
+        this.setTransform(this.movingTranslate.x, this.movingTranslate.y)
 
         // 拖拽实现 。。。。。。。。。。。。。。。
     }
@@ -185,6 +190,16 @@ export default class DragAndZoom {
         this.isMouseDown = true
         this.downPointer.x = e.clientX
         this.downPointer.y = e.clientY
+    }
+
+    private fullscreenChangeHandler = () => {
+        if (!document.fullscreenElement) {
+            this.setDomDragBoundary()
+        }
+    }
+
+    private setTransform = (x: number, y: number) => {
+        this.dom!.style.transform = `translate(${x}px, ${y}px) scale(${this.scale})`
     }
 
     // TODO: 边界范围
@@ -197,11 +212,11 @@ export default class DragAndZoom {
             // 子元素宽度大于父元素时的逻辑
             if (domRight <= parentRight) {
                 // 右边界
-                this.movingTranslate.x = this.parentElement!.clientWidth - this.dom!.clientWidth
+                this.movingTranslate.x -= domRight - parentRight
             }
             if (domLeft >= parentLeft) {
                 // 左边界
-                this.movingTranslate.x = 0
+                this.movingTranslate.x = (domWidth - this.dom!.clientWidth) / 2
             }
         }
         if (domWidth <= parentWidth) {
@@ -219,11 +234,11 @@ export default class DragAndZoom {
             // 子元素高度大于父元素时的逻辑
             if (domBottom <= parentBottom) {
                 // 下边界
-                this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight
+                this.movingTranslate.y -= domBottom - parentBottom
             }
             if (domTop >= parentTop) {
                 // 上边界
-                this.movingTranslate.y = 0
+                this.movingTranslate.y = (domHeight - this.dom!.clientHeight) / 2
             }
         }
         if (domHeight <= parentHeight) {
@@ -238,7 +253,7 @@ export default class DragAndZoom {
             }
         }
 
-        this.dom!.style.transform = `translate(${this.movingTranslate.x}px, ${this.movingTranslate.y}px)`
+        this.setTransform(this.movingTranslate.x, this.movingTranslate.y)
 
         this.lastTranslate.x = this.movingTranslate.x
         this.lastTranslate.y = this.movingTranslate.y
@@ -246,16 +261,20 @@ export default class DragAndZoom {
 
     private originSize = { width: 0, height: 0 } // dom原始值
     private lastSize = { width: 0, height: 0 } // dom最后的尺寸,用来计算放大缩小后元素居中
+    private scale = 1
     public zoom = (size: number) => {
         if (size > (this.options?.zoom?.max || this.defaultZoom.max) || size < (this.options?.zoom?.min || this.defaultZoom.min)) return
 
         this.setZoomingTimeout()
 
+        this.scale = size
+
         const width = this.originSize.width * size
         const height = this.originSize.height * size
 
-        this.dom!.style.width = `${width * size}px`
-        this.dom!.style.height = `${height * size}px`
+        // 直接设置宽高在全屏的时候元素大小不变，导致看上去没照比例放大
+        // this.dom!.style.width = `${width * size}px`
+        // this.dom!.style.height = `${height * size}px`
 
         const distanceX = (width - this.lastSize.width) / 2
         const distanceY = (height - this.lastSize.height) / 2
@@ -264,7 +283,6 @@ export default class DragAndZoom {
         this.lastTranslate.y -= distanceY
 
         this.setDomDragBoundary()
-        // this.dom!.style.transform = `translate(${this.lastTranslate.x}px, ${this.lastTranslate.y}px)`
     }
 
     // 移除事件绑定
