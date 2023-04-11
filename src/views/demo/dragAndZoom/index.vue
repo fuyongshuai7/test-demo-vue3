@@ -63,15 +63,17 @@ const fullScreen = () => {
 <style lang="scss" scoped>
 .drag-and-zoom {
     border: 1px solid red;
-    width: 1100px;
-    height: 700px;
+    // width: 1100px;
+    // height: 700px;
+    width: 200px;
+    height: 200px;
     overflow: hidden;
     position: relative;
 
     img {
         border: 1px solid green;
-        // width: 100%;
-        // height: 100%;
+        width: 100%;
+        height: 100%;
     }
 
     .operation-group {

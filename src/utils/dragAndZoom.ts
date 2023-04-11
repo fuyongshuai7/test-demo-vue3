@@ -54,8 +54,8 @@ export default class DragAndZoom {
                 this.lastTranslate.y = this.movingTranslate.y
             },
             multipointStart: () => {
-                this.initScale.width = this.dom!.clientWidth
-                this.initScale.height = this.dom!.clientHeight
+                // this.initScale.width = this.dom!.clientWidth
+                // this.initScale.height = this.dom!.clientHeight
             },
             multipointEnd: () => {
                 if (this.isZooming) {
@@ -65,21 +65,18 @@ export default class DragAndZoom {
                 this.setDomDragBoundary()
             },
             pinch: (e: any) => {
+                // 缩放
+                const { width, height } = this.dom!.getClientRects()[0]
+
                 this.setZoomingTimeout()
 
-                // 缩放
-                const { zoom } = e
-                const size = zoom
-
-                const width = this.initScale.width
-                const height = this.initScale.height
-
+                const { zoom: size } = e
                 let zoomWidth = width * size
                 let zoomHeight = height * size
 
                 // 最大最小宽高逻辑 ===
-                const _minSize = this.options.zoom!.min as number
-                const _maxSize = this.options.zoom!.max as number
+                const _minSize = this.options.zoom?.min || this.defaultZoom.max
+                const _maxSize = this.options.zoom?.max || this.defaultZoom.min
                 const _minWidth = this.originSize.width * _minSize
                 const _minHeight = this.originSize.height * _minSize
                 const _maxWidth = this.originSize.width * _maxSize
@@ -100,16 +97,15 @@ export default class DragAndZoom {
                 }
                 // 最大最小宽高逻辑 。。。
 
-                this.dom!.style.width = `${zoomWidth}px`
-                this.dom!.style.height = `${zoomHeight}px`
-
                 const distanceX = (zoomWidth - width) / 2
                 const distanceY = (zoomHeight - height) / 2
 
                 const translateX = this.lastTranslate.x - distanceX
                 const translateY = this.lastTranslate.y - distanceY
 
-                // this.dom!.style.transform = `translate(${translateX}px, ${translateY}px)`
+                const zoomScale = zoomWidth / this.dom!.clientHeight
+                this.scale = zoomScale
+
                 this.setTransform(translateX, translateY)
 
                 // 保存偏移，等缩放结束后设置lastTranslate
@@ -205,6 +201,7 @@ export default class DragAndZoom {
     // TODO: 边界范围
     // TODO: 只有整个元素都在父元素之外的时候才要重新定位边界
     private setDomDragBoundary = () => {
+        console.log('this.dom!.getClientRects()[0]', this.dom!.getClientRects()[0])
         const { top: domTop, right: domRight, bottom: domBottom, left: domLeft, width: domWidth, height: domHeight } = this.dom!.getClientRects()[0]
         const { top: parentTop, right: parentRight, bottom: parentBottom, left: parentLeft, width: parentWidth, height: parentHeight } = this.parentElement!.getClientRects()[0]
 
@@ -223,11 +220,11 @@ export default class DragAndZoom {
             // 子元素宽度小于父元素时的逻辑
             if (domRight >= parentRight) {
                 // 右边界
-                this.movingTranslate.x = this.parentElement!.clientWidth - this.dom!.clientWidth
+                this.movingTranslate.x = this.parentElement!.clientWidth - this.dom!.clientWidth + (this.dom!.clientWidth - domWidth) / 2
             }
             if (domLeft <= parentLeft) {
                 // 左边界
-                this.movingTranslate.x = 0
+                this.movingTranslate.x = -(this.dom!.clientWidth - domWidth) / 2
             }
         }
         if (domHeight > parentHeight) {
@@ -245,11 +242,11 @@ export default class DragAndZoom {
             // 子元素高度小于父元素时的逻辑
             if (domBottom >= parentBottom) {
                 // 下边界
-                this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight
+                this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight + (this.dom!.clientHeight - domHeight) / 2
             }
             if (domTop <= parentTop) {
                 // 上边界
-                this.movingTranslate.y = 0
+                this.movingTranslate.y = -(this.dom!.clientHeight - domHeight) / 2
             }
         }
 
