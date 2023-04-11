@@ -14,7 +14,7 @@ export default class DragAndZoom {
             console.error('dom 不存在')
         } else {
             this.dom = e
-            this.options = options || { zoom: this.defaultZoom, beforeMoving: () => true }
+            this._initOptions(options)
             this.parentElement = parentElement || this.dom.parentElement
             this._init()
         }
@@ -23,10 +23,34 @@ export default class DragAndZoom {
     private dom: HTMLElement | null = null
     private cacheTranslateAfterPinch = { x: 0, y: 0 }
     private defaultZoom = { max: 10, min: 0.5 }
-    private initScale = { width: 0, height: 0 }
     private options: DragAndZoomOptions = { zoom: this.defaultZoom, beforeMoving: () => true }
     private parentElement: HTMLElement | null = null
     private afInstance: any
+
+    // 轮询options，设置options
+    private loop = (baseObject: { [attr: string]: any }, assignObject: { [attr: string]: any }) => {
+        for (const key in baseObject) {
+            if (Object.prototype.hasOwnProperty.call(baseObject, key)) {
+                const value = baseObject[key as keyof DragAndZoomOptions]; // 这边默认value都有值，因为是默认值
+                const assignValue = assignObject[key]
+                const assignValueIsObjectType = Object.prototype.toString.call(value) === '[object Object]'
+                if (assignValue !== undefined && assignValue !== null && !assignValueIsObjectType) {
+                    baseObject[key as keyof DragAndZoomOptions] = assignValue
+                } else if (assignValueIsObjectType) {
+                    this.loop(value, assignObject[key])
+                }
+            }
+        }
+        return baseObject
+    }
+    private _initOptions = (options?: DragAndZoomOptions) => {
+        const defaultOptions = { zoom: this.defaultZoom, beforeMoving: () => true }
+        if (!options) {
+            this.options = defaultOptions
+        } else {
+            this.options = this.loop(defaultOptions, options)
+        }
+    }
 
     private _init = () => {
         // 绑定事件
@@ -52,10 +76,6 @@ export default class DragAndZoom {
 
                 this.lastTranslate.x = this.movingTranslate.x
                 this.lastTranslate.y = this.movingTranslate.y
-            },
-            multipointStart: () => {
-                // this.initScale.width = this.dom!.clientWidth
-                // this.initScale.height = this.dom!.clientHeight
             },
             multipointEnd: () => {
                 if (this.isZooming) {
@@ -201,7 +221,6 @@ export default class DragAndZoom {
     // TODO: 边界范围
     // TODO: 只有整个元素都在父元素之外的时候才要重新定位边界
     private setDomDragBoundary = () => {
-        console.log('this.dom!.getClientRects()[0]', this.dom!.getClientRects()[0])
         const { top: domTop, right: domRight, bottom: domBottom, left: domLeft, width: domWidth, height: domHeight } = this.dom!.getClientRects()[0]
         const { top: parentTop, right: parentRight, bottom: parentBottom, left: parentLeft, width: parentWidth, height: parentHeight } = this.parentElement!.getClientRects()[0]
 
@@ -268,10 +287,6 @@ export default class DragAndZoom {
 
         const width = this.originSize.width * size
         const height = this.originSize.height * size
-
-        // 直接设置宽高在全屏的时候元素大小不变，导致看上去没照比例放大
-        // this.dom!.style.width = `${width * size}px`
-        // this.dom!.style.height = `${height * size}px`
 
         const distanceX = (width - this.lastSize.width) / 2
         const distanceY = (height - this.lastSize.height) / 2

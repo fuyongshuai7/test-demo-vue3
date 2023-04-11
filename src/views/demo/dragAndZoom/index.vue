@@ -7,8 +7,7 @@
             <button @click="zoom('up', 0.3)">放大</button>
             <button @click="zoom('down', 0.3)">缩小</button>
             <button @click="remove">dispose</button>
-            <button>rebind</button>
-            <button>reset</button>
+            <button @click="reset">reset</button>
             <button @click="fullScreen">full screen</button>
         </div>
     </div>
@@ -24,7 +23,7 @@ let instance: DragAndZoom
 onMounted(() => {
     if (dragRef.value) {
         dragRef.value.onload = () => {
-            instance = new DragAndZoom(dragRef.value as HTMLImageElement)
+            instance = new DragAndZoom(dragRef.value as HTMLImageElement, { zoom: { max: 20 } })
         }
     }
 })
@@ -54,6 +53,10 @@ const remove = () => {
     instance.dispose()
 }
 
+const reset = () => {
+    currentZoomSize = 1
+    instance.zoom(1)
+}
 
 const componentRef = ref<HTMLElement>()
 const fullScreen = () => {
@@ -63,17 +66,17 @@ const fullScreen = () => {
 <style lang="scss" scoped>
 .drag-and-zoom {
     border: 1px solid red;
-    // width: 1100px;
-    // height: 700px;
-    width: 200px;
-    height: 200px;
+    width: 1100px;
+    height: 700px;
+    // width: 200px;
+    // height: 200px;
     overflow: hidden;
     position: relative;
 
     img {
         border: 1px solid green;
-        width: 100%;
-        height: 100%;
+        // width: 100%;
+        // height: 100%;
     }
 
     .operation-group {
