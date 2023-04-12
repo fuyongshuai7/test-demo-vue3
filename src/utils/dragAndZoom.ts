@@ -6,6 +6,7 @@ interface DragAndZoomOptions {
         max?: number,
         min?: number
     }
+    boundaryRebound?: boolean, // 设置边界回弹，true时超出父元素时会回弹
     beforeMoving?: () => boolean, // 移动前回调，返回true才能拖动
 }
 export default class DragAndZoom {
@@ -23,7 +24,11 @@ export default class DragAndZoom {
     private dom: HTMLElement | null = null
     private cacheTranslateAfterPinch = { x: 0, y: 0 }
     private defaultZoom = { max: 10, min: 0.5 }
-    private options: DragAndZoomOptions = { zoom: this.defaultZoom, beforeMoving: () => true }
+    private options: DragAndZoomOptions = {
+        zoom: this.defaultZoom,
+        boundaryRebound: true,
+        beforeMoving: () => true
+    }
     private parentElement: HTMLElement | null = null
     private afInstance: any
 
@@ -44,7 +49,11 @@ export default class DragAndZoom {
         return baseObject
     }
     private _initOptions = (options?: DragAndZoomOptions) => {
-        const defaultOptions = { zoom: this.defaultZoom, beforeMoving: () => true }
+        const defaultOptions = {
+            zoom: this.defaultZoom,
+            boundaryRebound: true,
+            beforeMoving: () => true
+        }
         if (!options) {
             this.options = defaultOptions
         } else {
@@ -73,16 +82,15 @@ export default class DragAndZoom {
                 this.movingTranslate.y = deltaY + this.lastTranslate.y;
 
                 this.setTransform(this.movingTranslate.x, this.movingTranslate.y)
-
-                this.lastTranslate.x = this.movingTranslate.x
-                this.lastTranslate.y = this.movingTranslate.y
             },
             multipointEnd: () => {
                 if (this.isZooming) {
                     this.lastTranslate.x = this.cacheTranslateAfterPinch.x
                     this.lastTranslate.y = this.cacheTranslateAfterPinch.y
                 }
-                this.setDomDragBoundary()
+                if (this.options.boundaryRebound) {
+                    this.setDomDragBoundary()
+                }
             },
             pinch: (e: any) => {
                 // 缩放
@@ -126,7 +134,8 @@ export default class DragAndZoom {
                 const zoomScale = zoomWidth / this.dom!.clientHeight
                 this.scale = zoomScale
 
-                this.setTransform(translateX, translateY)
+                console.log('this.scale', this.scale)
+                this.setTransform(translateX, translateY, false)
 
                 // 保存偏移，等缩放结束后设置lastTranslate
                 this.cacheTranslateAfterPinch.x = translateX
@@ -178,6 +187,7 @@ export default class DragAndZoom {
     private lastTranslate = { x: 0, y: 0 } // 鼠标弹起后的元素偏移
     private videoMouseUpHandler = () => {
         this.isMouseDown = false
+        this.setTransform(this.movingTranslate.x, this.movingTranslate.y)
         this.setDomDragBoundary()
     }
     private videoMouseMoveHandler = (e: MouseEvent) => {
@@ -197,7 +207,7 @@ export default class DragAndZoom {
 
         this.movingTranslate.x = movingX + this.lastTranslate.x
         this.movingTranslate.y = movingY + this.lastTranslate.y;
-        this.setTransform(this.movingTranslate.x, this.movingTranslate.y)
+        this.setTransform(this.movingTranslate.x, this.movingTranslate.y, false)
 
         // 拖拽实现 。。。。。。。。。。。。。。。
     }
@@ -214,13 +224,19 @@ export default class DragAndZoom {
         }
     }
 
-    private setTransform = (x: number, y: number) => {
+    private setTransform = (x: number, y: number, setLastTransform = true) => {
         this.dom!.style.transform = `translate(${x}px, ${y}px) scale(${this.scale})`
+
+        if (setLastTransform) {
+            this.lastTranslate.x = x
+            this.lastTranslate.y = y
+        }
     }
 
     // TODO: 边界范围
     // TODO: 只有整个元素都在父元素之外的时候才要重新定位边界
     private setDomDragBoundary = () => {
+        if (!this.options.boundaryRebound) return
         const { top: domTop, right: domRight, bottom: domBottom, left: domLeft, width: domWidth, height: domHeight } = this.dom!.getClientRects()[0]
         const { top: parentTop, right: parentRight, bottom: parentBottom, left: parentLeft, width: parentWidth, height: parentHeight } = this.parentElement!.getClientRects()[0]
 
@@ -270,9 +286,6 @@ export default class DragAndZoom {
         }
 
         this.setTransform(this.movingTranslate.x, this.movingTranslate.y)
-
-        this.lastTranslate.x = this.movingTranslate.x
-        this.lastTranslate.y = this.movingTranslate.y
     }
 
     private originSize = { width: 0, height: 0 } // dom原始值
@@ -294,7 +307,11 @@ export default class DragAndZoom {
         this.lastTranslate.x -= distanceX
         this.lastTranslate.y -= distanceY
 
-        this.setDomDragBoundary()
+        if (this.options.boundaryRebound) {
+            this.setDomDragBoundary()
+        } else {
+            this.setTransform(this.lastTranslate.x, this.lastTranslate.y)
+        }
     }
 
     // 移除事件绑定

@@ -13,7 +13,7 @@ let palyerInstance: Player
 
 onMounted(() => {
     if (videoRef.value) {
-        palyerInstance = new Player(videoRef.value, { src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', controls: true })
+        palyerInstance = new Player(videoRef.value, { src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' })
     }
 })
 </script>

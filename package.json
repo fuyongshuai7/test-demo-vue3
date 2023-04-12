@@ -16,6 +16,7 @@
     "core-js": "^3.6.5",
     "element-plus": "^2.2.32",
     "patch-package": "^6.5.1",
+    "vconsole": "^3.15.0",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6",
     "vuex": "^4.1.0",

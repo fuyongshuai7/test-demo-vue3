@@ -23,7 +23,7 @@ let instance: DragAndZoom
 onMounted(() => {
     if (dragRef.value) {
         dragRef.value.onload = () => {
-            instance = new DragAndZoom(dragRef.value as HTMLImageElement, { zoom: { max: 20 } })
+            instance = new DragAndZoom(dragRef.value as HTMLImageElement, { zoom: { max: 20 }, boundaryRebound: false })
         }
     }
 })
