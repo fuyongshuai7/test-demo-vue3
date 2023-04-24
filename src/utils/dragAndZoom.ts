@@ -23,7 +23,7 @@ export default class DragAndZoom {
 
     private dom: HTMLElement | null = null
     private cacheTranslateAfterPinch = { x: 0, y: 0 }
-    private defaultZoom = { max: 10, min: 0.5 }
+    private defaultZoom = { max: 10, min: 1 }
     private options: DragAndZoomOptions = {
         zoom: this.defaultZoom,
         boundaryRebound: true,
@@ -37,7 +37,7 @@ export default class DragAndZoom {
         for (const key in baseObject) {
             if (Object.prototype.hasOwnProperty.call(baseObject, key)) {
                 const value = baseObject[key as keyof DragAndZoomOptions]; // 这边默认value都有值，因为是默认值
-                const assignValue = assignObject[key]
+                const assignValue = assignObject?.[key]
                 const assignValueIsObjectType = Object.prototype.toString.call(value) === '[object Object]'
                 if (assignValue !== undefined && assignValue !== null && !assignValueIsObjectType) {
                     baseObject[key as keyof DragAndZoomOptions] = assignValue
