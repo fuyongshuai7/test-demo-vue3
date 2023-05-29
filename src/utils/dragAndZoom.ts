@@ -5,7 +5,7 @@ interface DragAndZoomOptions {
     zoom?: {
         max?: number,
         min?: number
-    }
+    },
     boundaryRebound?: boolean, // 设置边界回弹，true时超出父元素时会回弹
     beforeMoving?: () => boolean, // 移动前回调，返回true才能拖动
 }
@@ -31,6 +31,8 @@ export default class DragAndZoom {
     }
     private parentElement: HTMLElement | null = null
     private afInstance: any
+    private isFullscreen: boolean = false // 是否全屏，全屏下scale超出1后会无效，所以在全屏状态下缩放需要用修改宽高的方式
+    private screen = { height: window.screen.height, width: window.screen.width }
 
     // 轮询options，设置options
     private loop = (baseObject: { [attr: string]: any }, assignObject: { [attr: string]: any }) => {
@@ -81,7 +83,7 @@ export default class DragAndZoom {
                 this.movingTranslate.x = deltaX + this.lastTranslate.x
                 this.movingTranslate.y = deltaY + this.lastTranslate.y;
 
-                this.setTransform(this.movingTranslate.x, this.movingTranslate.y)
+                this.setTransform(this.movingTranslate.x, this.movingTranslate.y, true)
             },
             multipointEnd: () => {
                 if (this.isZooming) {
@@ -131,10 +133,14 @@ export default class DragAndZoom {
                 const translateX = this.lastTranslate.x - distanceX
                 const translateY = this.lastTranslate.y - distanceY
 
-                const zoomScale = zoomWidth / this.dom!.clientHeight
-                this.scale = zoomScale
+                if (this.isFullscreen) {
+                    this.dom!.style.width = `${zoomWidth}px`
+                    this.dom!.style.height = `${zoomHeight}px`
 
-                console.log('this.scale', this.scale)
+                } else {
+                    const zoomScale = zoomWidth / this.dom!.clientHeight
+                    this.scale = zoomScale
+                }
                 this.setTransform(translateX, translateY, false)
 
                 // 保存偏移，等缩放结束后设置lastTranslate
@@ -148,22 +154,22 @@ export default class DragAndZoom {
 
     // 绑定鼠标事件
     private bindMouseEventHandler = () => {
-        this.dom!.addEventListener('mouseup', this.videoMouseUpHandler)
-        this.dom!.addEventListener('mousemove', this.videoMouseMoveHandler)
-        this.dom!.addEventListener('mousedown', this.videoMouseDownHandler)
+        this.dom!.addEventListener('mouseup', this.mouseUpHandler)
+        this.dom!.addEventListener('mousemove', this.mouseMoveHandler)
+        this.dom!.addEventListener('mousedown', this.mouseDownHandler)
 
         // 绑定一个document鼠标弹起监听, 当离开鼠标离开元素弹起的时候能够取消拖拽
-        document.addEventListener('mouseup', this.videoMouseUpHandler)
+        document.addEventListener('mouseup', this.mouseUpHandler)
         // 全屏恢复时需要重新调整位置
         document.addEventListener('fullscreenchange', this.fullscreenChangeHandler)
     }
     // 移除鼠标事件
-    private unbindVideoMouseEventHandler = () => {
-        this.dom!.removeEventListener('mouseup', this.videoMouseUpHandler)
-        this.dom!.removeEventListener('mousemove', this.videoMouseMoveHandler)
-        this.dom!.removeEventListener('mousedown', this.videoMouseDownHandler)
+    private unbindmouseEventHandler = () => {
+        this.dom!.removeEventListener('mouseup', this.mouseUpHandler)
+        this.dom!.removeEventListener('mousemove', this.mouseMoveHandler)
+        this.dom!.removeEventListener('mousedown', this.mouseDownHandler)
 
-        document.removeEventListener('mouseup', this.videoMouseUpHandler)
+        document.removeEventListener('mouseup', this.mouseUpHandler)
         document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler)
     }
 
@@ -185,12 +191,12 @@ export default class DragAndZoom {
     private downPointer = { x: 0, y: 0 } // 按下时的点,用来计算移动时偏移
     private movingTranslate = { x: 0, y: 0 } // 移动的偏移
     private lastTranslate = { x: 0, y: 0 } // 鼠标弹起后的元素偏移
-    private videoMouseUpHandler = () => {
+    private mouseUpHandler = () => {
         this.isMouseDown = false
         this.setTransform(this.movingTranslate.x, this.movingTranslate.y)
         this.setDomDragBoundary()
     }
-    private videoMouseMoveHandler = (e: MouseEvent) => {
+    private mouseMoveHandler = (e: MouseEvent) => {
         if (!this.isMouseDown || !this.options?.beforeMoving?.() || this.isZooming) return
 
         e.preventDefault()
@@ -212,7 +218,7 @@ export default class DragAndZoom {
         // 拖拽实现 。。。。。。。。。。。。。。。
     }
 
-    private videoMouseDownHandler = (e: MouseEvent) => {
+    private mouseDownHandler = (e: MouseEvent) => {
         this.isMouseDown = true
         this.downPointer.x = e.clientX
         this.downPointer.y = e.clientY
@@ -220,12 +226,24 @@ export default class DragAndZoom {
 
     private fullscreenChangeHandler = () => {
         if (!document.fullscreenElement) {
+            this.isFullscreen = false
+            this.dom!.style.height = `${this.originSize.height}px`
+            this.dom!.style.width = `${this.originSize.width}px`
             this.setDomDragBoundary()
+        } else {
+            this.isFullscreen = true
+            const { height, width } = this.screen
+            this.dom!.style.height = `${height}px`
+            this.dom!.style.width = `${width}px`
         }
     }
 
     private setTransform = (x: number, y: number, setLastTransform = true) => {
-        this.dom!.style.transform = `translate(${x}px, ${y}px) scale(${this.scale})`
+        if (this.isFullscreen) {
+            this.dom!.style.transform = `translate(${x}px, ${y}px)`
+        } else {
+            this.dom!.style.transform = `translate(${x}px, ${y}px) scale(${this.scale})`
+        }
 
         if (setLastTransform) {
             this.lastTranslate.x = x
@@ -240,52 +258,99 @@ export default class DragAndZoom {
         const { top: domTop, right: domRight, bottom: domBottom, left: domLeft, width: domWidth, height: domHeight } = this.dom!.getClientRects()[0]
         const { top: parentTop, right: parentRight, bottom: parentBottom, left: parentLeft, width: parentWidth, height: parentHeight } = this.parentElement!.getClientRects()[0]
 
-        if (domWidth > parentWidth) {
-            // 子元素宽度大于父元素时的逻辑
-            if (domRight <= parentRight) {
-                // 右边界
-                this.movingTranslate.x -= domRight - parentRight
+        if (this.isFullscreen) {
+            if (domWidth > parentWidth) {
+                // 子元素宽度大于父元素时的逻辑
+                if (domRight <= parentRight) {
+                    // 右边界
+                    this.movingTranslate.x = this.parentElement!.clientWidth - this.dom!.clientWidth
+                }
+                if (domLeft >= parentLeft) {
+                    // 左边界
+                    this.movingTranslate.x = 0
+                }
             }
-            if (domLeft >= parentLeft) {
-                // 左边界
-                this.movingTranslate.x = (domWidth - this.dom!.clientWidth) / 2
+            if (domWidth <= parentWidth) {
+                // 子元素宽度小于父元素时的逻辑
+                if (domRight >= parentRight) {
+                    // 右边界
+                    this.movingTranslate.x = this.parentElement!.clientWidth - this.dom!.clientWidth
+                }
+                if (domLeft <= parentLeft) {
+                    // 左边界
+                    this.movingTranslate.x = 0
+                }
             }
-        }
-        if (domWidth <= parentWidth) {
-            // 子元素宽度小于父元素时的逻辑
-            if (domRight >= parentRight) {
-                // 右边界
-                this.movingTranslate.x = this.parentElement!.clientWidth - this.dom!.clientWidth + (this.dom!.clientWidth - domWidth) / 2
+            if (domHeight > parentHeight) {
+                // 子元素高度大于父元素时的逻辑
+                if (domBottom <= parentBottom) {
+                    // 下边界
+                    this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight
+                }
+                if (domTop >= parentTop) {
+                    // 上边界
+                    this.movingTranslate.y = 0
+                }
             }
-            if (domLeft <= parentLeft) {
-                // 左边界
-                this.movingTranslate.x = -(this.dom!.clientWidth - domWidth) / 2
+            if (domHeight <= parentHeight) {
+                // 子元素高度小于父元素时的逻辑
+                if (domBottom >= parentBottom) {
+                    // 下边界
+                    this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight
+                }
+                if (domTop <= parentTop) {
+                    // 上边界
+                    this.movingTranslate.y = 0
+                }
             }
-        }
-        if (domHeight > parentHeight) {
-            // 子元素高度大于父元素时的逻辑
-            if (domBottom <= parentBottom) {
-                // 下边界
-                this.movingTranslate.y -= domBottom - parentBottom
+        } else {
+            if (domWidth > parentWidth) {
+                // 子元素宽度大于父元素时的逻辑
+                if (domRight <= parentRight) {
+                    // 右边界
+                    this.movingTranslate.x -= domRight - parentRight
+                }
+                if (domLeft >= parentLeft) {
+                    // 左边界
+                    this.movingTranslate.x = (domWidth - this.dom!.clientWidth) / 2
+                }
             }
-            if (domTop >= parentTop) {
-                // 上边界
-                this.movingTranslate.y = (domHeight - this.dom!.clientHeight) / 2
+            if (domWidth <= parentWidth) {
+                // 子元素宽度小于父元素时的逻辑
+                if (domRight >= parentRight) {
+                    // 右边界
+                    this.movingTranslate.x = this.parentElement!.clientWidth - this.dom!.clientWidth + (this.dom!.clientWidth - domWidth) / 2
+                }
+                if (domLeft <= parentLeft) {
+                    // 左边界
+                    this.movingTranslate.x = -(this.dom!.clientWidth - domWidth) / 2
+                }
             }
-        }
-        if (domHeight <= parentHeight) {
-            // 子元素高度小于父元素时的逻辑
-            if (domBottom >= parentBottom) {
-                // 下边界
-                this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight + (this.dom!.clientHeight - domHeight) / 2
+            if (domHeight > parentHeight) {
+                // 子元素高度大于父元素时的逻辑
+                if (domBottom <= parentBottom) {
+                    // 下边界
+                    this.movingTranslate.y -= domBottom - parentBottom
+                }
+                if (domTop >= parentTop) {
+                    // 上边界
+                    this.movingTranslate.y = (domHeight - this.dom!.clientHeight) / 2
+                }
             }
-            if (domTop <= parentTop) {
-                // 上边界
-                this.movingTranslate.y = -(this.dom!.clientHeight - domHeight) / 2
+            if (domHeight <= parentHeight) {
+                // 子元素高度小于父元素时的逻辑
+                if (domBottom >= parentBottom) {
+                    // 下边界
+                    this.movingTranslate.y = this.parentElement!.clientHeight - this.dom!.clientHeight + (this.dom!.clientHeight - domHeight) / 2
+                }
+                if (domTop <= parentTop) {
+                    // 上边界
+                    this.movingTranslate.y = -(this.dom!.clientHeight - domHeight) / 2
+                }
             }
         }
 
-        this.setTransform(this.movingTranslate.x, this.movingTranslate.y)
+        this.setTransform(this.movingTranslate.x, this.movingTranslate.y, true)
     }
 
     private originSize = { width: 0, height: 0 } // dom原始值
@@ -301,6 +366,11 @@ export default class DragAndZoom {
         const width = this.originSize.width * size
         const height = this.originSize.height * size
 
+        if (this.isFullscreen) {
+            this.dom!.style.width = `${width * size}px`
+            this.dom!.style.height = `${height * size}px`
+        }
+
         const distanceX = (width - this.lastSize.width) / 2
         const distanceY = (height - this.lastSize.height) / 2
 
@@ -310,12 +380,12 @@ export default class DragAndZoom {
         if (this.options.boundaryRebound) {
             this.setDomDragBoundary()
         } else {
-            this.setTransform(this.lastTranslate.x, this.lastTranslate.y)
+            this.setTransform(this.lastTranslate.x, this.lastTranslate.y, true)
         }
     }
 
     // 移除事件绑定
     public dispose = () => {
-        this.unbindVideoMouseEventHandler()
+        this.unbindmouseEventHandler()
     }
 }
