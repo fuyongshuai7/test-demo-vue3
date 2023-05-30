@@ -192,11 +192,15 @@ export default class DragAndZoom {
     private movingTranslate = { x: 0, y: 0 } // 移动的偏移
     private lastTranslate = { x: 0, y: 0 } // 鼠标弹起后的元素偏移
     private mouseUpHandler = () => {
+        console.log('mouse up')
         this.isMouseDown = false
+        console.log('this.movingTranslate.x', this.movingTranslate.x)
+        console.log('this.movingTranslate.y', this.movingTranslate.y)
         this.setTransform(this.movingTranslate.x, this.movingTranslate.y)
         this.setDomDragBoundary()
     }
     private mouseMoveHandler = (e: MouseEvent) => {
+        console.log('mouse over')
         if (!this.isMouseDown || !this.options?.beforeMoving?.() || this.isZooming) return
 
         e.preventDefault()
@@ -219,6 +223,7 @@ export default class DragAndZoom {
     }
 
     private mouseDownHandler = (e: MouseEvent) => {
+        console.log('mouse down')
         this.isMouseDown = true
         this.downPointer.x = e.clientX
         this.downPointer.y = e.clientY
@@ -236,6 +241,10 @@ export default class DragAndZoom {
             this.dom!.style.height = `${height}px`
             this.dom!.style.width = `${width}px`
         }
+        this.setTransform(0, 0, true)
+        this.movingTranslate = { x: 0, y: 0 }
+
+        console.log('this.isFullscreen', this.isFullscreen)
     }
 
     private setTransform = (x: number, y: number, setLastTransform = true) => {
@@ -363,12 +372,16 @@ export default class DragAndZoom {
 
         this.scale = size
 
-        const width = this.originSize.width * size
-        const height = this.originSize.height * size
+        console.log('this.originSize.width', this.originSize.width)
+        console.log('this.originSize.height', this.originSize.height)
+        let width = this.originSize.width * size
+        let height = this.originSize.height * size
 
         if (this.isFullscreen) {
-            this.dom!.style.width = `${width * size}px`
-            this.dom!.style.height = `${height * size}px`
+            width = this.screen.width * size
+            height = this.screen.height * size
+            this.dom!.style.width = `${width}px`
+            this.dom!.style.height = `${height}px`
         }
 
         const distanceX = (width - this.lastSize.width) / 2
