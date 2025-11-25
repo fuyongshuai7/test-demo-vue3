@@ -18,6 +18,14 @@ export const routes: Array<RouteRecordRaw> = [
           title: '首页',
           hidden: true
         },
+      },
+      {
+        path: 'test',
+        component: () => import("@/views/test/index.vue"),
+        meta: {
+          title: "测试页",
+          hidden: true
+        }
       }
     ]
   },

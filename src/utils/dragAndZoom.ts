@@ -201,8 +201,11 @@ export default class DragAndZoom {
     }
     private mouseMoveHandler = (e: MouseEvent) => {
         console.log('mouse over')
+        console.log('this.isMouseDown', this.isMouseDown)
+        console.log('this.options.beforeMoving()', this.options?.beforeMoving?.())
+        console.log('this.isZooming', this.isZooming)
+        console.log('------------------------------------------', {color: 'red'})
         if (!this.isMouseDown || !this.options?.beforeMoving?.() || this.isZooming) return
-
         e.preventDefault()
         e.stopPropagation()
         // 拖拽实现 ====================
